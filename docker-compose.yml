@@ -3,6 +3,7 @@ version: '3.8'
 services:
   app:
     build:
+      context: .
     command: npm run start:dev
     volumes:
       - .:/usr/src/app
@@ -11,3 +12,4 @@ services:
       - '3000:3000'
     environment:
       NODE_ENV: development
+      JWT_SECRET: ${JWT_SECRET}

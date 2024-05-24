@@ -18,4 +18,8 @@ export class UsersService {
     this.users.push(user);
     return user;
   }
+
+  findOneByEmail(email: string) {
+    return this.users.find((user) => user.email === email);
+  }
 }
