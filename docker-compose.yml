@@ -1,11 +1,13 @@
-version: '2.27.0'
+version: '3.8'
+
 services:
   app:
-    build: .
+    build:
+    command: npm run start:dev
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - '3000:3000'
     environment:
       NODE_ENV: development
-    volumes:
-      - .:/app
-      - /app/node_modules
