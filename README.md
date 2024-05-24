@@ -23,13 +23,19 @@
 
    Keep in mind that we use `npm` for managing Node packages. If you try installing the dependencies with `yarn`, it will generate a `yarn-lock` file that will likely cause problems with the existing `package-lock.json`.
 
-2. Start the application with Docker.
+2. Create a .env file in the root directory and add the following environment variables:
+
+   ```
+   JWT_SECRET=your-secret-key
+   ```
+
+3. Start the application with Docker.
 
    ```
    docker-compose up --build
    ```
 
-3. The API will be available at `http://localhost:3000`.
+4. The API will be available at `http://localhost:3000`.
 
 ## Usage
 
