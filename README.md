@@ -1,73 +1,94 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Chat Users NestJS
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Table of contents
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- [Chat Users NestJS](#chat-users-nestjs)
+  - [Table of contents](#table-of-contents)
+  - [Getting started](#getting-started)
+  - [Usage](#usage)
+  - [Documentation](#documentation)
+  - [Development](#development)
+    - [Style guide](#style-guide)
+    - [Testing](#testing)
+      - [Running tests](#running-tests)
+  - [After finishing a task](#after-finishing-a-task)
 
-## Description
+## Getting started
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. First, clone the repo and install the dependencies,
 
-## Installation
+   ```
+   npm install
+   ```
 
-```bash
-$ npm install
+   Keep in mind that we use `npm` for managing Node packages. If you try installing the dependencies with `yarn`, it will generate a `yarn-lock` file that will likely cause problems with the existing `package-lock.json`.
+
+2. Start the application with Docker.
+
+   ```
+   docker-compose up --build
+   ```
+
+3. The API will be available at `http://localhost:3000`.
+
+## Usage
+
+When you launch your Docker container, the project will be launched in watch mode, so any change you make in the code will be reflected in your instance.
+
+## Documentation
+
+To create the documentation for a new endpoint, you need to add the ApiTags with the desired tag name to the controller, and then add the ApiOperation to the method of the request.
+
+```
+@ApiTags('welcome')
+@ApiOperation({ summary: 'Welcome message!' })
 ```
 
-## Running the app
+## Development
 
-```bash
-# development
-$ npm run start
+To create a new endpoint, you need to run the following commands to generate the module, controller, and service:
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+nest g module users
+nest g controller users
+nest g service users
 ```
 
-## Test
+### Style guide
 
-```bash
-# unit tests
-$ npm run test
+Before submitting a patch, please make sure that the code is formatted executing this command:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```
+npm run format
 ```
 
-## Support
+### Testing
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Testing is crucial for us and we strive for high coverage of our code.
 
-## Stay in touch
+We encourage you to write tests for every functionality you build and also update the existing ones if they need to.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+#### Running tests
 
-## License
+Before running the test, install the needed dependencies:
 
-Nest is [MIT licensed](LICENSE).
+```
+npm install
+```
+
+Execute all tests with:
+
+To run the tests we need to run this script
+
+```
+npm run test
+```
+
+## After finishing a task
+
+Before pushing your changes, make sure you run the linter and prettier to ensure the code follows the rules, or the CI pipeline will throw an error and fail:
+
+```
+npm run lint
+npm run format
+```
