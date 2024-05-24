@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -56,7 +55,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return a JWT token', async () => {
-      const user = { id: 'user-id', email: 'test@example.com' };
+      const user = { id: 'user-id', email: 'test@example.com', name: 'pepe' };
       const token = 'jwt-token';
 
       jest.spyOn(jwtService, 'sign').mockReturnValue(token);

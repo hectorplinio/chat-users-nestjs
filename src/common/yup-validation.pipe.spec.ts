@@ -3,9 +3,8 @@ import { YupValidationPipe } from './yup-validation.pipe';
 import * as Yup from 'yup';
 
 describe('YupValidationPipe', () => {
-  let pipe: YupValidationPipe;
-  let schema: Yup.ObjectSchema<any>;
-
+  let pipe: YupValidationPipe<{ email: string; password: string }>;
+  let schema: Yup.ObjectSchema<{ email: string; password: string }>;
   beforeEach(() => {
     schema = Yup.object().shape({
       email: Yup.string().email().required(),

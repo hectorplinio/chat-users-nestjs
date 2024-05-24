@@ -41,9 +41,11 @@ describe('AuthController', () => {
       };
       const result = { access_token: 'jwt-token' };
 
-      jest
-        .spyOn(authService, 'validateUser')
-        .mockResolvedValue({ id: 'user-id', email: 'test@example.com' });
+      jest.spyOn(authService, 'validateUser').mockResolvedValue({
+        id: 'user-id',
+        email: 'test@example.com',
+        name: 'pepe',
+      });
       jest.spyOn(authService, 'login').mockResolvedValue(result);
 
       expect(await authController.login(loginDto)).toBe(result);
