@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { CreateMessageDto } from './create-message.dto';
 import { Message } from './message.model';
@@ -16,11 +20,11 @@ export class MessagesService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    
+
     if (!user.isActive) {
       throw new ConflictException('User is not active');
     }
-    
+
     const message: Message = {
       id: uuidv4(),
       userId: createMessageDto.userId,
@@ -32,7 +36,13 @@ export class MessagesService {
     return message;
   }
 
-  findAllByUserId(userId: string): Message[] {
+  findAllByUserId(userId: string) {
+    const user = this.usersService.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return this.messages.filter((message) => message.userId === userId);
   }
 }

@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
   ApiBody,
-  ApiConflictResponse,
+  ApiNotFoundResponse,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -39,7 +40,7 @@ export class MessagesController {
       },
     },
   })
-  @ApiConflictResponse({
+  @ApiNotFoundResponse({
     status: 404,
     description: 'User not found',
     schema: {
@@ -55,5 +56,41 @@ export class MessagesController {
     createMessageDto: CreateMessageDto,
   ) {
     return this.messagesService.create(createMessageDto);
+  }
+
+  @Get(':userId')
+  @ApiOperation({ summary: 'Get all messages for a user' })
+  @ApiParam({
+    name: 'userId',
+    required: true,
+    description: 'User ID',
+    schema: { type: 'string', example: 'uuid' },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ok',
+    schema: {
+      example: [
+        {
+          id: 'uuid',
+          userId: 'user-uuid',
+          content: 'This is a message',
+          timestamp: '2023-01-01T00:00:00.000Z',
+        },
+      ],
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'User not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  findAllByUserId(@Param('userId') userId: string) {
+    return this.messagesService.findAllByUserId(userId);
   }
 }
