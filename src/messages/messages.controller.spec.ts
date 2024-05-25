@@ -1,10 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, NotFoundException } from '@nestjs/common';
+import {
+  INestApplication,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import * as request from 'supertest';
 import { MessagesController } from './messages.controller';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './create-message.dto';
-import { UsersModule } from '../users/users.module';
 import { UsersService } from '../users/users.service';
 
 describe('MessagesController', () => {
@@ -14,7 +17,6 @@ describe('MessagesController', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [UsersModule],
       controllers: [MessagesController],
       providers: [
         {
@@ -49,6 +51,10 @@ describe('MessagesController', () => {
       timestamp: new Date().toISOString(),
     };
 
+    usersService.findOneById.mockReturnValue({
+      id: 'user-uuid',
+      isActive: true,
+    });
     messagesService.create.mockReturnValue(expectedMessage);
 
     const response = await request(app.getHttpServer())
@@ -66,6 +72,7 @@ describe('MessagesController', () => {
       content: 'This is a test message',
     };
 
+    usersService.findOneById.mockReturnValue(null);
     messagesService.create.mockImplementation(() => {
       throw new NotFoundException('User not found');
     });
@@ -79,6 +86,33 @@ describe('MessagesController', () => {
       statusCode: 404,
       message: 'User not found',
       error: 'Not Found',
+    });
+    expect(messagesService.create).toHaveBeenCalledWith(createMessageDto);
+  });
+
+  it('POST /messages should return 409 if user is not active', async () => {
+    const createMessageDto: CreateMessageDto = {
+      userId: 'user-uuid',
+      content: 'This is a test message',
+    };
+
+    usersService.findOneById.mockReturnValue({
+      id: 'user-uuid',
+      isActive: false,
+    });
+    messagesService.create.mockImplementation(() => {
+      throw new ConflictException('User is not active');
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/messages')
+      .send(createMessageDto)
+      .expect(409);
+
+    expect(response.body).toEqual({
+      statusCode: 409,
+      message: 'User is not active',
+      error: 'Conflict',
     });
     expect(messagesService.create).toHaveBeenCalledWith(createMessageDto);
   });
