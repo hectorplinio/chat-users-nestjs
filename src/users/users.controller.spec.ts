@@ -19,6 +19,7 @@ describe('UsersController', () => {
     findOneById: jest.fn(),
     findOneByEmail: jest.fn(),
     updateStatus: jest.fn(),
+    findAllActive: jest.fn(),
   };
   const authService = { validateAndLogin: jest.fn() };
 
@@ -252,6 +253,32 @@ describe('UsersController', () => {
       .expect(404)
       .expect((res) => {
         expect(res.body.message).toBe('User not found');
+      });
+  });
+
+  it('/users (GET) should return all active users', async () => {
+    const activeUsers = [
+      {
+        id: 'uuid1',
+        email: 'user1@example.com',
+        name: 'User One',
+        isActive: true,
+      },
+      {
+        id: 'uuid2',
+        email: 'user2@example.com',
+        name: 'User Two',
+        isActive: true,
+      },
+    ];
+
+    usersService.findAllActive.mockReturnValue(activeUsers);
+
+    await request(app.getHttpServer())
+      .get('/users')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual(activeUsers);
       });
   });
 

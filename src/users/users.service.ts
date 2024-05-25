@@ -62,4 +62,8 @@ export class UsersService {
     }
     return user;
   }
+
+  findAllActive(): User[] {
+    return this.users.filter((user) => user.isActive);
+  }
 }

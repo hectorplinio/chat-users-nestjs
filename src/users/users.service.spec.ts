@@ -142,4 +142,28 @@ describe('UsersService', () => {
       NotFoundException,
     );
   });
+
+  it('should find all active users', () => {
+    const createUserDto1: CreateUserDto = {
+      email: 'active@example.com',
+      password: 'password123',
+      name: 'Active User',
+    };
+
+    const createUserDto2: CreateUserDto = {
+      email: 'inactive@example.com',
+      password: 'password123',
+      name: 'Inactive User',
+    };
+
+    const user1 = service.create(createUserDto1);
+    const user2 = service.create(createUserDto2);
+
+    service.updateStatus(user2.id, false);
+
+    const activeUsers = service.findAllActive();
+
+    expect(activeUsers).toHaveLength(1);
+    expect(activeUsers[0]).toEqual(user1);
+  });
 });
