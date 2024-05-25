@@ -72,6 +72,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password: 'password123',
         id: '2',
+        name: 'pepe',
       };
       jest.spyOn(usersService, 'findOneById').mockReturnValue(user);
       jest

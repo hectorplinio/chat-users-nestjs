@@ -6,6 +6,7 @@ import {
 import { CreateUserDto } from './create-users.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateUserDto } from './update-user.dto';
+import { User } from './user.model';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +45,11 @@ export class UsersService {
     return this.users.find((user) => user.email === email);
   }
 
-  findOneById(id: string) {
-    return this.users.find((user) => user.id === id);
+  findOneById(id: string): User {
+    const user = this.users.find((user) => user.id === id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 }

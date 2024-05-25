@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   NotFoundException,
   Param,
   Post,
@@ -16,6 +17,7 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -107,7 +109,6 @@ export class UsersController {
       example: {
         email: 'user@example.com',
         name: 'Updated User Name',
-        password: 'newpassword123',
         id: 'uuid',
       },
     },
@@ -134,7 +135,11 @@ export class UsersController {
       });
       const updatedUser = this.usersService.update(id, updateUserDto);
 
-      return { ...updatedUser };
+      return {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+      };
     } catch (error) {
       if (error instanceof ConflictException) {
         throw new ConflictException('Email already exists');
@@ -144,6 +149,57 @@ export class UsersController {
       }
       if (error instanceof UnauthorizedException) {
         throw new UnauthorizedException('Invalid credentials');
+      }
+      throw error;
+    }
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Retrieve user data' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User ID',
+    schema: { type: 'string', example: 'uuid' },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ok',
+    schema: {
+      example: {
+        email: 'user@example.com',
+        name: 'Updated User Name',
+        id: 'uuid',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Invalid credentials',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'User not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  getUser(@Param('id') id: string) {
+    try {
+      const user = this.usersService.findOneById(id);
+      return { id: user.id, name: user.name, email: user.email };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('User not found');
       }
       throw error;
     }
