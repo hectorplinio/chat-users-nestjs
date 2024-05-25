@@ -177,6 +177,39 @@ describe('UsersController', () => {
       .expect(500);
   });
 
+  it('/users/:id (GET) should return user data', async () => {
+    const userId = 'uuid';
+    const user = {
+      id: userId,
+      email: 'user@example.com',
+      name: 'Test User',
+    };
+
+    usersService.findOneById.mockReturnValue(user);
+
+    await request(app.getHttpServer())
+      .get(`/users/${userId}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual(user);
+      });
+  });
+
+  it('/users/:id (GET) should return 404 if user not found', async () => {
+    const userId = 'nonexistent-uuid';
+
+    usersService.findOneById.mockImplementation(() => {
+      throw new NotFoundException('User not found');
+    });
+
+    await request(app.getHttpServer())
+      .get(`/users/${userId}`)
+      .expect(404)
+      .expect((res) => {
+        expect(res.body.message).toBe('User not found');
+      });
+  });
+
   afterAll(async () => {
     await app.close();
   });
