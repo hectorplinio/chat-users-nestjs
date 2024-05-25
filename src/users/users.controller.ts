@@ -266,4 +266,30 @@ export class UsersController {
       throw error;
     }
   }
+
+  @Get()
+  @ApiOperation({ summary: 'Retrieve all active users' })
+  @ApiResponse({
+    status: 200,
+    description: 'Ok',
+    schema: {
+      example: [
+        {
+          id: 'uuid1',
+          email: 'user1@example.com',
+          name: 'User One',
+          isActive: true,
+        },
+        {
+          id: 'uuid2',
+          email: 'user2@example.com',
+          name: 'User Two',
+          isActive: true,
+        },
+      ],
+    },
+  })
+  getAllActiveUsers() {
+    return this.usersService.findAllActive();
+  }
 }
