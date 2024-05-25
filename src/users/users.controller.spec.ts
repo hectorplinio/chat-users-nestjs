@@ -3,14 +3,23 @@ import {
   ConflictException,
   INestApplication,
   InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as request from 'supertest';
 import { UsersModule } from './users.module';
 import { UsersService } from './users.service';
+import { AuthService } from '../auth/auth.service';
 
 describe('UsersController', () => {
   let app: INestApplication;
-  const usersService = { create: jest.fn(), findAll: jest.fn() };
+  const usersService = {
+    create: jest.fn(),
+    update: jest.fn(),
+    findOneById: jest.fn(),
+    findOneByEmail: jest.fn(),
+  };
+  const authService = { validateAndLogin: jest.fn() };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -18,10 +27,16 @@ describe('UsersController', () => {
     })
       .overrideProvider(UsersService)
       .useValue(usersService)
+      .overrideProvider(AuthService)
+      .useValue(authService)
       .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it('/users (POST)', () => {
@@ -73,6 +88,93 @@ describe('UsersController', () => {
       .expect((res) => {
         expect(res.body.message).toBe('Unexpected error');
       });
+  });
+
+  it('/users/:id (PUT) should update user data', async () => {
+    const updateUserDto = {
+      email: 'updated@example.com',
+      name: 'Updated User',
+      password: 'newpassword123',
+    };
+    const authUserDto = {
+      email: 'test@example.com',
+      password: 'password',
+    };
+    const userId = 'uuid';
+
+    authService.validateAndLogin.mockReturnValue({ access_token: 'jwt-token' });
+    usersService.update.mockReturnValue({ ...updateUserDto, id: userId });
+
+    await request(app.getHttpServer())
+      .put(`/users/${userId}`)
+      .send({ ...updateUserDto, ...authUserDto })
+      .expect(200);
+  });
+
+  it('/users/:id (PUT) should return 401 if credentials are invalid', async () => {
+    const updateUserDto = {
+      email: 'updated@example.com',
+      name: 'Updated User',
+      password: 'newpassword123',
+    };
+    const authUserDto = {
+      email: 'test@example.com',
+      password: 'wrongpassword',
+    };
+    const userId = 'uuid';
+
+    authService.validateAndLogin.mockImplementation(() => {
+      throw new UnauthorizedException('Invalid credentials');
+    });
+
+    await request(app.getHttpServer())
+      .put(`/users/${userId}`)
+      .send({ ...updateUserDto, ...authUserDto })
+      .expect(401);
+  });
+
+  it('/users/:id (PUT) should return 404 if user not found', async () => {
+    const updateUserDto = {
+      email: 'updated@example.com',
+      name: 'Updated User',
+      password: 'newpassword123',
+    };
+    const authUserDto = {
+      email: 'test@example.com',
+      password: 'password',
+    };
+    const userId = 'nonexistent-uuid';
+
+    usersService.update.mockImplementation(() => {
+      throw new NotFoundException('User not found');
+    });
+
+    await request(app.getHttpServer())
+      .put(`/users/${userId}`)
+      .send({ ...updateUserDto, ...authUserDto })
+      .expect(404);
+  });
+
+  it('/users/:id (PUT) should throw an error if an unexpected error occurs', async () => {
+    const updateUserDto = {
+      email: 'updated@example.com',
+      name: 'Updated User',
+      password: 'newpassword123',
+    };
+    const authUserDto = {
+      email: 'test@example.com',
+      password: 'password',
+    };
+    const userId = 'uuid';
+
+    usersService.update.mockImplementation(() => {
+      throw new InternalServerErrorException('Internal server error');
+    });
+
+    await request(app.getHttpServer())
+      .put(`/users/${userId}`)
+      .send({ ...updateUserDto, ...authUserDto })
+      .expect(500);
   });
 
   afterAll(async () => {

@@ -5,6 +5,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { AuthUserDto } from './auth-users.dto';
+import { User } from 'src/users/user.model';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -20,6 +21,7 @@ describe('AuthController', () => {
           provide: UsersService,
           useValue: {
             findOneByEmail: jest.fn(),
+            findOneById: jest.fn(),
           },
         },
       ],
@@ -38,15 +40,19 @@ describe('AuthController', () => {
       const loginDto: AuthUserDto = {
         email: 'test@example.com',
         password: 'password123',
+        id: 'user-id',
       };
       const result = { access_token: 'jwt-token' };
 
-      jest.spyOn(authService, 'validateUser').mockResolvedValue({
+      const user: User = {
         id: 'user-id',
         email: 'test@example.com',
         name: 'pepe',
-      });
-      jest.spyOn(authService, 'login').mockResolvedValue(result);
+      };
+
+      jest.spyOn(authService, 'validateUser').mockReturnValue(user);
+
+      jest.spyOn(authService, 'login').mockReturnValue(result);
 
       expect(await authController.login(loginDto)).toBe(result);
     });
@@ -57,7 +63,7 @@ describe('AuthController', () => {
         password: 'wrongpassword',
       };
 
-      jest.spyOn(authService, 'validateUser').mockResolvedValue(null);
+      jest.spyOn(authService, 'validateUser').mockReturnValue(null);
 
       await expect(authController.login(loginDto)).rejects.toThrow(
         UnauthorizedException,

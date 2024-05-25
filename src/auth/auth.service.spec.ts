@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -17,6 +18,7 @@ describe('AuthService', () => {
           provide: UsersService,
           useValue: {
             findOneByEmail: jest.fn(),
+            findOneById: jest.fn(),
           },
         },
       ],
@@ -32,35 +34,69 @@ describe('AuthService', () => {
   });
 
   describe('validateUser', () => {
-    it('should return user data if validation is successful', async () => {
+    it('should return user data if validation is successful', () => {
       const user = {
         email: 'test@example.com',
         password: 'password123',
       };
-      jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(user);
+      jest.spyOn(usersService, 'findOneByEmail').mockReturnValue(user);
 
-      expect(
-        await service.validateUser('test@example.com', 'password123'),
-      ).toEqual(null);
+      expect(service.validateUser('test@example.com', 'password123')).toEqual(
+        user,
+      );
     });
 
-    it('should return null if validation fails', async () => {
-      jest.spyOn(usersService, 'findOneByEmail').mockResolvedValue(null);
+    it('should return null if validation fails', () => {
+      jest.spyOn(usersService, 'findOneByEmail').mockReturnValue(null);
 
       expect(
-        await service.validateUser('test@example.com', 'wrongpassword'),
+        service.validateUser('test@example.com', 'wrongpassword'),
       ).toBeNull();
     });
   });
 
   describe('login', () => {
-    it('should return a JWT token', async () => {
+    it('should return a JWT token', () => {
       const user = { id: 'user-id', email: 'test@example.com', name: 'pepe' };
       const token = 'jwt-token';
 
       jest.spyOn(jwtService, 'sign').mockReturnValue(token);
 
-      expect(await service.login(user)).toEqual({ access_token: token });
+      expect(service.login(user)).toEqual({ access_token: token });
+    });
+  });
+
+  describe('validateAndLogin', () => {
+    it('should return user data if validation is successful', () => {
+      const user = {
+        email: 'test@example.com',
+        password: 'password123',
+        id: '2',
+      };
+      jest.spyOn(usersService, 'findOneById').mockReturnValue(user);
+      jest
+        .spyOn(service, 'login')
+        .mockReturnValue({ access_token: 'jwt-token' });
+
+      expect(
+        service.validateAndLogin({
+          email: 'test@example.com',
+          password: 'password123',
+          id: '2',
+        }),
+      ).toEqual(user);
+    });
+
+    it('should throw UnauthorizedException if validation fails', () => {
+      jest.spyOn(usersService, 'findOneById').mockReturnValue(null);
+
+      expect(() =>
+        service.validateAndLogin({
+          email: 'test@example.com',
+          password: 'wrongpassword',
+          id: 'user-id',
+        }),
+      ).toThrow(UnauthorizedException);
     });
   });
 });
