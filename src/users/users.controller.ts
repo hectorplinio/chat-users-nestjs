@@ -27,6 +27,7 @@ import {
 import { UpdateUserDto, updateUserSchema } from './update-user.dto';
 import { AuthUserDto, authUserSchema } from '../auth/auth-users.dto';
 import { AuthService } from '../auth/auth.service';
+import { UpdateUserStatusDto } from './update-user-status.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -197,6 +198,67 @@ export class UsersController {
     try {
       const user = this.usersService.findOneById(id);
       return { id: user.id, name: user.name, email: user.email };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('User not found');
+      }
+      throw error;
+    }
+  }
+
+  @Put(':id/status')
+  @ApiOperation({ summary: 'Update user status' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User ID',
+    schema: { type: 'string', example: 'uuid' },
+  })
+  @ApiBody({
+    description: 'Update user status',
+    schema: {
+      example: {
+        isActive: true,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User status updated successfully',
+    schema: {
+      example: {
+        id: 'uuid',
+        email: 'user@example.com',
+        name: 'User Name',
+        isActive: true,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Not Found',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'User not found',
+        error: 'Not Found',
+      },
+    },
+  })
+  updateUserStatus(
+    @Param('id') id: string,
+    @Body() updateUserStatusDto: UpdateUserStatusDto,
+  ) {
+    try {
+      const updatedUser = this.usersService.updateStatus(
+        id,
+        updateUserStatusDto.isActive,
+      );
+      return {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        isActive: updatedUser.isActive,
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException('User not found');

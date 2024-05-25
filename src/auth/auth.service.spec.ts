@@ -57,7 +57,12 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should return a JWT token', () => {
-      const user = { id: 'user-id', email: 'test@example.com', name: 'pepe' };
+      const user = {
+        id: 'user-id',
+        email: 'test@example.com',
+        name: 'pepe',
+        isActive: true,
+      };
       const token = 'jwt-token';
 
       jest.spyOn(jwtService, 'sign').mockReturnValue(token);
@@ -73,6 +78,7 @@ describe('AuthService', () => {
         password: 'password123',
         id: '2',
         name: 'pepe',
+        isActive: true,
       };
       jest.spyOn(usersService, 'findOneById').mockReturnValue(user);
       jest

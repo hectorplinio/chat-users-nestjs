@@ -18,6 +18,7 @@ describe('UsersController', () => {
     update: jest.fn(),
     findOneById: jest.fn(),
     findOneByEmail: jest.fn(),
+    updateStatus: jest.fn(),
   };
   const authService = { validateAndLogin: jest.fn() };
 
@@ -204,6 +205,50 @@ describe('UsersController', () => {
 
     await request(app.getHttpServer())
       .get(`/users/${userId}`)
+      .expect(404)
+      .expect((res) => {
+        expect(res.body.message).toBe('User not found');
+      });
+  });
+
+  it('/users/:id/status (PUT) should update user status', async () => {
+    const updateUserStatusDto = {
+      isActive: true,
+    };
+    const userId = 'uuid';
+
+    usersService.updateStatus.mockReturnValue({
+      id: userId,
+      email: 'user@example.com',
+      name: 'User Name',
+      isActive: true,
+    });
+
+    await request(app.getHttpServer())
+      .put(`/users/${userId}/status`)
+      .send(updateUserStatusDto)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.id).toBe(userId);
+        expect(res.body.email).toBe('user@example.com');
+        expect(res.body.name).toBe('User Name');
+        expect(res.body.isActive).toBe(true);
+      });
+  });
+
+  it('/users/:id/status (PUT) should return 404 if user not found', async () => {
+    const updateUserStatusDto = {
+      isActive: true,
+    };
+    const userId = 'nonexistent-uuid';
+
+    usersService.updateStatus.mockImplementation(() => {
+      throw new NotFoundException('User not found');
+    });
+
+    await request(app.getHttpServer())
+      .put(`/users/${userId}/status`)
+      .send(updateUserStatusDto)
       .expect(404)
       .expect((res) => {
         expect(res.body.message).toBe('User not found');

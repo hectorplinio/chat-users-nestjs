@@ -20,7 +20,7 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const user = { ...createUserDto, id: uuidv4() };
+    const user = { ...createUserDto, id: uuidv4(), isActive: true };
     this.users.push(user);
     return user;
   }
@@ -39,6 +39,16 @@ export class UsersService {
 
     this.users[userIndex] = updatedUser;
     return updatedUser;
+  }
+
+  updateStatus(id: string, isActive: boolean): User {
+    const userIndex = this.users.findIndex((user) => user.id === id);
+    if (userIndex === -1) {
+      throw new NotFoundException('User not found');
+    }
+
+    this.users[userIndex].isActive = isActive;
+    return this.users[userIndex];
   }
 
   findOneByEmail(email: string) {

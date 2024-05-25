@@ -48,6 +48,7 @@ describe('AuthController', () => {
         id: 'user-id',
         email: 'test@example.com',
         name: 'pepe',
+        isActive: true,
       };
 
       jest.spyOn(authService, 'validateUser').mockReturnValue(user);
