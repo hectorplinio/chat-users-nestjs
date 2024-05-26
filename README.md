@@ -27,6 +27,8 @@
 
    ```
    JWT_SECRET=your-secret-key
+   POSTGRES_PASSWORD=your_postgres_password
+   DATABASE_PASSWORD=your_postgres_password
    ```
 
 3. Start the application with Docker.
@@ -34,8 +36,9 @@
    ```
    docker-compose up --build
    ```
+4. You do not have to worry about the database configuration because I have added the synchronize parameter as true and that means that once you start Docker, the DB will be ready to receive requests.
 
-4. The API will be available at `http://localhost:3000`.
+5. The API will be available at `http://localhost:3000`.
 
 ## Usage
 
@@ -49,6 +52,8 @@ To create the documentation for a new endpoint, you need to add the ApiTags with
 @ApiTags('welcome')
 @ApiOperation({ summary: 'Welcome message!' })
 ```
+
+The DOCS will be available at `http://localhost:3000/api/v1/docs`
 
 ## Development
 

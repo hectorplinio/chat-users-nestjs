@@ -8,7 +8,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { AuthUserDto, authUserSchema } from './auth-users.dto';
+import { AuthUserDto, authUserSchema, LoginResponse } from './auth-users.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -46,7 +46,9 @@ export class AuthController {
       },
     },
   })
-  async login(@Body(new YupValidationPipe(authUserSchema)) body: AuthUserDto) {
+  async login(
+    @Body(new YupValidationPipe(authUserSchema)) body: AuthUserDto,
+  ): Promise<LoginResponse> {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

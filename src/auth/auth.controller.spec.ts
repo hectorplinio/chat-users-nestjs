@@ -20,8 +20,7 @@ describe('AuthController', () => {
         {
           provide: UsersService,
           useValue: {
-            findOneByEmail: jest.fn(),
-            findOneById: jest.fn(),
+            findOneBy: jest.fn(),
           },
         },
       ],
@@ -51,7 +50,7 @@ describe('AuthController', () => {
         isActive: true,
       };
 
-      jest.spyOn(authService, 'validateUser').mockReturnValue(user);
+      jest.spyOn(authService, 'validateUser').mockResolvedValue(user);
 
       jest.spyOn(authService, 'login').mockReturnValue(result);
 
@@ -64,7 +63,7 @@ describe('AuthController', () => {
         password: 'wrongpassword',
       };
 
-      jest.spyOn(authService, 'validateUser').mockReturnValue(null);
+      jest.spyOn(authService, 'validateUser').mockResolvedValue(null);
 
       await expect(authController.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
