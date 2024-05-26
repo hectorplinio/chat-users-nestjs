@@ -5,6 +5,8 @@ import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JWT_SECRET } from '../env';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserEntity } from '../users/user.entity';
 
 @Module({
   imports: [
@@ -14,6 +16,7 @@ import { JWT_SECRET } from '../env';
       signOptions: { expiresIn: '60m' },
     }),
     forwardRef(() => UsersModule),
+    TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [AuthService],
   controllers: [AuthController],

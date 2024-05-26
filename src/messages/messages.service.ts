@@ -57,6 +57,11 @@ export class MessagesService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    if (!user.isActive) {
+      return null;
+    }
+
     const filteredMessagesByUserId = await this.messagesRepository.find({
       where: { user_id: user.id },
     });
