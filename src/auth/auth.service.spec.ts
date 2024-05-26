@@ -1,13 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { UserEntity } from '../users/user.entity';
+import { Repository } from 'typeorm';
 
 describe('AuthService', () => {
   let service: AuthService;
   let jwtService: JwtService;
-  const usersService = { findOneBy: jest.fn() };
+  let usersRepository: Repository<UserEntity>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,14 +17,17 @@ describe('AuthService', () => {
         AuthService,
         JwtService,
         {
-          provide: UsersService,
-          useValue: usersService,
+          provide: getRepositoryToken(UserEntity),
+          useClass: Repository,
         },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
+    usersRepository = module.get<Repository<UserEntity>>(
+      getRepositoryToken(UserEntity),
+    );
   });
 
   it('should be defined', () => {
@@ -37,9 +42,9 @@ describe('AuthService', () => {
         id: '2',
         name: 'pepe',
         isActive: true,
-      };
+      } as UserEntity;
 
-      usersService.findOneBy.mockReturnValue(user);
+      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(user);
 
       const response = await service.validateUser(
         'test@example.com',
@@ -50,7 +55,7 @@ describe('AuthService', () => {
     });
 
     it('should return null if validation fails', async () => {
-      usersService.findOneBy.mockReturnValue(null);
+      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(null);
 
       const response = await service.validateUser(
         'test@example.com',
@@ -67,7 +72,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         name: 'pepe',
         isActive: true,
-      };
+      } as UserEntity;
       const token = 'jwt-token';
 
       jest.spyOn(jwtService, 'sign').mockReturnValue(token);
@@ -86,8 +91,9 @@ describe('AuthService', () => {
         id: '2',
         name: 'pepe',
         isActive: true,
-      };
-      usersService.findOneBy.mockReturnValue(user);
+      } as UserEntity;
+
+      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(user);
       jest
         .spyOn(service, 'login')
         .mockReturnValue({ access_token: 'jwt-token' });
@@ -102,7 +108,7 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException if validation fails', async () => {
-      usersService.findOneBy.mockReturnValue(null);
+      jest.spyOn(usersRepository, 'findOneBy').mockResolvedValue(null);
 
       await expect(
         service.validateAndLogin({

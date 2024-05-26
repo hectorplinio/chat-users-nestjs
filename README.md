@@ -36,6 +36,7 @@
    ```
    docker-compose up --build
    ```
+
 4. You do not have to worry about the database configuration because I have added the synchronize parameter as true and that means that once you start Docker, the DB will be ready to receive requests.
 
 5. The API will be available at `http://localhost:3000`.

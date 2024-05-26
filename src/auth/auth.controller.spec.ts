@@ -3,9 +3,11 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { UserEntity } from '../users/user.entity';
 import { AuthUserDto } from './auth-users.dto';
 import { User } from 'src/users/user.model';
+import { Repository } from 'typeorm';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -18,10 +20,8 @@ describe('AuthController', () => {
         AuthService,
         JwtService,
         {
-          provide: UsersService,
-          useValue: {
-            findOneBy: jest.fn(),
-          },
+          provide: getRepositoryToken(UserEntity),
+          useClass: Repository,
         },
       ],
     }).compile();
@@ -51,7 +51,6 @@ describe('AuthController', () => {
       };
 
       jest.spyOn(authService, 'validateUser').mockResolvedValue(user);
-
       jest.spyOn(authService, 'login').mockReturnValue(result);
 
       expect(await authController.login(loginDto)).toBe(result);

@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -110,10 +111,24 @@ export class MessagesController {
       },
     },
   })
+  @ApiResponse({
+    status: 403,
+    description: 'User is not active',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'User is not active',
+        error: 'Forbidden',
+      },
+    },
+  })
   async findAllByUserId(@Param('userId') userId: string) {
     const messagesFiltetedByUserId =
       await this.messagesService.findAllByUserId(userId);
 
+    if (!messagesFiltetedByUserId) {
+      throw new ForbiddenException('User is not active');
+    }
     return messagesFiltetedByUserId;
   }
 }
