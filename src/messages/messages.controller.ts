@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  ConflictException,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiNotFoundResponse,
@@ -51,11 +59,23 @@ export class MessagesController {
       },
     },
   })
-  create(
+  async create(
     @Body(new YupValidationPipe(createMessageSchema))
     createMessageDto: CreateMessageDto,
   ) {
-    return this.messagesService.create(createMessageDto);
+    try {
+      const createdMessage = this.messagesService.create(createMessageDto);
+
+      return createdMessage;
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw new ConflictException('User not found');
+      }
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('User is not active');
+      }
+      throw error;
+    }
   }
 
   @Get(':userId')
@@ -90,7 +110,10 @@ export class MessagesController {
       },
     },
   })
-  findAllByUserId(@Param('userId') userId: string) {
-    return this.messagesService.findAllByUserId(userId);
+  async findAllByUserId(@Param('userId') userId: string) {
+    const messagesFiltetedByUserId =
+      await this.messagesService.findAllByUserId(userId);
+
+    return messagesFiltetedByUserId;
   }
 }

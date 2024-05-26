@@ -28,6 +28,7 @@ import { UpdateUserDto, updateUserSchema } from './update-user.dto';
 import { AuthUserDto, authUserSchema } from '../auth/auth-users.dto';
 import { AuthService } from '../auth/auth.service';
 import { UpdateUserStatusDto } from './update-user-status.dto';
+import { userResponseExample } from './user.response';
 
 @ApiTags('users')
 @Controller('users')
@@ -53,12 +54,7 @@ export class UsersController {
   @ApiCreatedResponse({
     description: 'Created',
     schema: {
-      example: {
-        email: 'pepe@gmail.com',
-        name: 'Pepe',
-        password: 'password',
-        id: '3fee104a-d950-437d-b8dc-250e51ee5c92',
-      },
+      example: userResponseExample[0],
     },
   })
   @ApiConflictResponse({
@@ -71,11 +67,13 @@ export class UsersController {
       },
     },
   })
-  create(
+  async create(
     @Body(new YupValidationPipe(createUserSchema)) createUserDto: CreateUserDto,
   ) {
     try {
-      return this.usersService.create(createUserDto);
+      const userCreated = await this.usersService.create(createUserDto);
+
+      return userCreated;
     } catch (error) {
       if (error instanceof ConflictException) {
         throw new ConflictException('Email already exists');
@@ -107,11 +105,7 @@ export class UsersController {
     status: 200,
     description: 'Updated',
     schema: {
-      example: {
-        email: 'user@example.com',
-        name: 'Updated User Name',
-        id: 'uuid',
-      },
+      example: userResponseExample[0],
     },
   })
   @ApiUnauthorizedResponse({
@@ -124,7 +118,7 @@ export class UsersController {
       },
     },
   })
-  update(
+  async update(
     @Param('id') id: string,
     @Body(new YupValidationPipe(updateUserSchema)) updateUserDto: UpdateUserDto,
     @Body(new YupValidationPipe(authUserSchema)) authUserDto: AuthUserDto,
@@ -134,13 +128,9 @@ export class UsersController {
         id: id,
         ...authUserDto,
       });
-      const updatedUser = this.usersService.update(id, updateUserDto);
+      const updatedUser = await this.usersService.update(id, updateUserDto);
 
-      return {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-      };
+      return updatedUser;
     } catch (error) {
       if (error instanceof ConflictException) {
         throw new ConflictException('Email already exists');
@@ -167,11 +157,7 @@ export class UsersController {
     status: 200,
     description: 'Ok',
     schema: {
-      example: {
-        email: 'user@example.com',
-        name: 'Updated User Name',
-        id: 'uuid',
-      },
+      example: userResponseExample[0],
     },
   })
   @ApiUnauthorizedResponse({
@@ -194,10 +180,11 @@ export class UsersController {
       },
     },
   })
-  getUser(@Param('id') id: string) {
+  async getUser(@Param('id') id: string) {
     try {
-      const user = this.usersService.findOneById(id);
-      return { id: user.id, name: user.name, email: user.email };
+      const user = await this.usersService.findOneBy({ id });
+
+      return user;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException('User not found');
@@ -226,12 +213,7 @@ export class UsersController {
     status: 200,
     description: 'User status updated successfully',
     schema: {
-      example: {
-        id: 'uuid',
-        email: 'user@example.com',
-        name: 'User Name',
-        isActive: true,
-      },
+      example: userResponseExample[0],
     },
   })
   @ApiNotFoundResponse({
@@ -244,21 +226,17 @@ export class UsersController {
       },
     },
   })
-  updateUserStatus(
+  async updateUserStatus(
     @Param('id') id: string,
     @Body() updateUserStatusDto: UpdateUserStatusDto,
   ) {
     try {
-      const updatedUser = this.usersService.updateStatus(
+      const updatedUser = await this.usersService.updateStatus(
         id,
         updateUserStatusDto.isActive,
       );
-      return {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        isActive: updatedUser.isActive,
-      };
+
+      return updatedUser;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException('User not found');
@@ -273,23 +251,12 @@ export class UsersController {
     status: 200,
     description: 'Ok',
     schema: {
-      example: [
-        {
-          id: 'uuid1',
-          email: 'user1@example.com',
-          name: 'User One',
-          isActive: true,
-        },
-        {
-          id: 'uuid2',
-          email: 'user2@example.com',
-          name: 'User Two',
-          isActive: true,
-        },
-      ],
+      example: userResponseExample,
     },
   })
-  getAllActiveUsers() {
-    return this.usersService.findAllActive();
+  async getAllActiveUsers() {
+    const users = await this.usersService.findAllActive();
+
+    return users;
   }
 }

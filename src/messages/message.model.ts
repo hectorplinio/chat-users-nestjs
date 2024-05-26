@@ -1,6 +1,6 @@
 export class Message {
   id: string;
-  userId: string;
+  user_id: string;
   content: string;
   timestamp: Date;
 }

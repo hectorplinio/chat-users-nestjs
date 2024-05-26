@@ -3,4 +3,5 @@ export interface User {
   email: string;
   name: string;
   isActive: boolean;
+  password?: string;
 }

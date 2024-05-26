@@ -11,12 +11,16 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  validateUser(email: string, password: string, id?: string): User {
+  async validateUser(
+    email: string,
+    password: string,
+    id?: string,
+  ): Promise<User> {
     if (id) {
-      const user = this.usersService.findOneById(id);
+      const user = await this.usersService.findOneBy({ id });
       return user ? user : null;
     }
-    const user = this.usersService.findOneByEmail(email);
+    const user = await this.usersService.findOneBy({ email });
     if (user && user.password === password) {
       return user;
     }
@@ -30,8 +34,8 @@ export class AuthService {
     };
   }
 
-  validateAndLogin(authUserDto: AuthUserDto): User {
-    const user = this.validateUser(
+  async validateAndLogin(authUserDto: AuthUserDto): Promise<User> {
+    const user = await this.validateUser(
       authUserDto.email,
       authUserDto.password,
       authUserDto.id,

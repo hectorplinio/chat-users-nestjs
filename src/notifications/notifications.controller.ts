@@ -47,7 +47,10 @@ export class NotificationsController {
       },
     },
   })
-  getUserNotifications(@Param('userId') userId: string) {
-    return this.notificationsService.getNotificationsByUserId(userId);
+  async getUserNotifications(@Param('userId') userId: string) {
+    const notificationsFilteredByUserId =
+      await this.notificationsService.getNotificationsByUserId(userId);
+
+    return notificationsFilteredByUserId;
   }
 }

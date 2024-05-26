@@ -4,6 +4,9 @@ import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateMessageDto } from './create-message.dto';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { MessageEntity } from './message.entity';
 import { v4 as uuidv4 } from 'uuid';
 
 jest.mock('uuid', () => ({
@@ -14,6 +17,7 @@ describe('MessagesService', () => {
   let service: MessagesService;
   let usersService: UsersService;
   let notificationsService: NotificationsService;
+  let messagesRepository: Repository<MessageEntity>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,7 +26,7 @@ describe('MessagesService', () => {
         {
           provide: UsersService,
           useValue: {
-            findOneById: jest.fn(),
+            findOneBy: jest.fn(),
           },
         },
         {
@@ -31,6 +35,10 @@ describe('MessagesService', () => {
             createNotification: jest.fn(),
           },
         },
+        {
+          provide: getRepositoryToken(MessageEntity),
+          useClass: Repository,
+        },
       ],
     }).compile();
 
@@ -38,6 +46,10 @@ describe('MessagesService', () => {
     usersService = module.get<UsersService>(UsersService);
     notificationsService =
       module.get<NotificationsService>(NotificationsService);
+    messagesRepository = module.get<Repository<MessageEntity>>(
+      getRepositoryToken(MessageEntity),
+    );
+
     (uuidv4 as jest.Mock).mockReturnValue('uuid');
     jest.useFakeTimers().setSystemTime(new Date('2024-05-25T12:42:19.962Z'));
   });
@@ -47,7 +59,7 @@ describe('MessagesService', () => {
     jest.useRealTimers();
   });
 
-  it('should create a message and a notification', () => {
+  it('should create a message and a notification', async () => {
     const createMessageDto: CreateMessageDto = {
       userId: 'user-uuid',
       content: 'This is a test message',
@@ -60,17 +72,20 @@ describe('MessagesService', () => {
       timestamp: new Date('2024-05-25T12:42:19.962Z').toISOString(),
     };
 
-    usersService.findOneById = jest
+    usersService.findOneBy = jest
       .fn()
-      .mockReturnValue({ id: 'user-uuid', isActive: true });
+      .mockResolvedValue({ id: 'user-uuid', isActive: true });
 
     const notificationSpy = jest.spyOn(
       notificationsService,
       'createNotification',
     );
 
-    service.create(createMessageDto);
+    messagesRepository.save = jest.fn().mockResolvedValue(expectedMessage);
 
+    const message = await service.create(createMessageDto);
+
+    expect(message).toEqual(expectedMessage);
     expect(notificationSpy).toHaveBeenCalledWith(
       createMessageDto.userId,
       expectedMessage.id,
@@ -78,27 +93,31 @@ describe('MessagesService', () => {
     );
   });
 
-  it('should throw NotFoundException if user not found', () => {
+  it('should throw NotFoundException if user not found', async () => {
     const createMessageDto: CreateMessageDto = {
       userId: 'nonexistent-user-uuid',
       content: 'This is a test message',
     };
 
-    usersService.findOneById = jest.fn().mockReturnValue(null);
+    usersService.findOneBy = jest.fn().mockResolvedValue(null);
 
-    expect(() => service.create(createMessageDto)).toThrow(NotFoundException);
+    await expect(service.create(createMessageDto)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
-  it('should throw ConflictException if user is not active', () => {
+  it('should throw ConflictException if user is not active', async () => {
     const createMessageDto: CreateMessageDto = {
       userId: 'user-uuid',
       content: 'This is a test message',
     };
 
-    usersService.findOneById = jest
+    usersService.findOneBy = jest
       .fn()
-      .mockReturnValue({ id: 'user-uuid', isActive: false });
+      .mockResolvedValue({ id: 'user-uuid', isActive: false });
 
-    expect(() => service.create(createMessageDto)).toThrow(ConflictException);
+    await expect(service.create(createMessageDto)).rejects.toThrow(
+      ConflictException,
+    );
   });
 });
